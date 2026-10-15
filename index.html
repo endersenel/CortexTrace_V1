@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CortexTrace - SPPlab | Visuomotor & Kalem-Parmak Egzersiz Platformu</title>
+  <title>CortexTrace Pro - SPPlab | Trail Making & Visuomotor Platformu</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,16 +59,22 @@
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-              CortexTrace
+              CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v1.0</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.2</span>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Çizim Platformu</p>
+          <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
       </div>
 
       <!-- Quick Control Badges -->
       <div class="flex items-center space-x-2 sm:space-x-3">
+        <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center space-x-2">
+          <i class="fa-solid fa-bullseye text-cyan-400 text-xs"></i>
+          <span class="text-xs text-slate-400 font-medium">Sıradaki:</span>
+          <span id="badgeNextNode" class="text-xs font-bold text-cyan-400 font-mono-custom">1</span>
+        </div>
+
         <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center space-x-2">
           <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xs"></i>
           <span class="text-xs text-slate-400 font-medium">Hata:</span>
@@ -77,8 +83,8 @@
 
         <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center space-x-2">
           <i class="fa-solid fa-stopwatch text-amber-400 text-xs"></i>
-          <span class="text-xs text-slate-400 font-medium">Tamamlama:</span>
-          <span id="badgeTime" class="text-xs font-bold text-amber-400 font-mono-custom">00:00</span>
+          <span class="text-xs text-slate-400 font-medium">Süre:</span>
+          <span id="badgeTime" class="text-xs font-bold text-amber-400 font-mono-custom">00:00.0</span>
         </div>
 
         <button onclick="toggleFullscreen()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 text-slate-300 transition" title="Tam Ekran">
@@ -98,19 +104,20 @@
       <!-- 1. Active Task Selection -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-route text-cyan-400 mr-1.5"></i> Çizim Etkinliği
+          <i class="fa-solid fa-route text-cyan-400 mr-1.5"></i> Trail Making Modu
         </label>
         <select id="taskSelect" onchange="changeTask(this.value)" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold rounded-xl p-2.5 focus:ring-2 focus:ring-cyan-500 outline-none">
-          <option value="trail">🔤 1. Trail Making (1-A-2-B Nokta Birleştirme)</option>
-          <option value="path">🛣️ 2. Hassas Parkur Takip (Çizgi Dışına Çıkma)</option>
-          <option value="infinity">♾️ 3. Sonsuzluk & Spiral Ritim Çizimi</option>
+          <option value="trailAB">🔤 Trail B (1-A-2-B-3-C... Çapraz)</option>
+          <option value="trailNum">🔢 Trail A (1-15 Sayı Sıralama)</option>
+          <option value="path">Hassas Parkur Takip</option>
+          <option value="infinity">♾️ Sonsuzluk & Spiral Ritim</option>
         </select>
       </div>
 
-      <!-- 2. Input Mode Selection (KALEM / PARMAK) -->
+      <!-- 2. Input Mode Selection -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-hand-pointer text-indigo-400 mr-1.5"></i> Giriş Aracı Seçimi
+          <i class="fa-solid fa-hand-pointer text-indigo-400 mr-1.5"></i> Giriş Aracı
         </label>
         <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
           <button id="btnInputPen" onclick="setInputMode('pen')" class="py-1.5 text-xs font-bold rounded-lg bg-cyan-600 text-white transition flex items-center justify-center gap-1.5">
@@ -122,28 +129,25 @@
         </div>
       </div>
 
-      <!-- 3. Line Thickness / Sensitivity -->
+      <!-- 3. Tolerance Slider -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-sliders text-purple-400 mr-1.5"></i> Çizgi Kalınlığı
+          <i class="fa-solid fa-shield-halved text-purple-400 mr-1.5"></i> Çizgi Hassasiyeti (Tolerans)
         </label>
         <div class="flex items-center space-x-3 bg-slate-950 p-2 rounded-xl border border-slate-800">
-          <input type="range" id="brushSize" min="2" max="12" value="4" oninput="updateBrushSize(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-          <span id="brushSizeLabel" class="text-xs font-mono-custom text-cyan-400 font-bold min-w-[30px]">4px</span>
+          <input type="range" id="toleranceSlider" min="20" max="80" value="45" oninput="updateTolerance(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+          <span id="toleranceLabel" class="text-xs font-mono-custom text-cyan-400 font-bold min-w-[35px]">45px</span>
         </div>
       </div>
 
-      <!-- 4. Action Buttons -->
+      <!-- 4. Control Buttons -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-play text-emerald-400 mr-1.5"></i> Kontrol
+          <i class="fa-solid fa-rotate-left text-emerald-400 mr-1.5"></i> Yeniden Başlat
         </label>
         <div class="flex gap-2">
-          <button id="btnStart" onclick="startTask()" class="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold py-2 px-3 rounded-xl shadow-lg transition text-xs">
-            BAŞLAT
-          </button>
-          <button onclick="clearCanvas()" class="bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold py-2 px-3 rounded-xl transition text-xs">
-            Temizle
+          <button onclick="resetTask()" class="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold py-2 px-3 rounded-xl shadow-lg transition text-xs">
+            Sıfırla & Hazırla
           </button>
         </div>
       </div>
@@ -153,12 +157,12 @@
     <!-- MAIN DISPLAY AREA (CANVAS STAGE) -->
     <div id="stageContainer" class="w-full flex-1 bg-slate-900/50 border-2 border-slate-800 rounded-3xl p-4 flex flex-col items-center justify-center relative shadow-2xl overflow-hidden min-h-[420px]">
       
-      <!-- Instruction Banner -->
+      <!-- Dynamic Instruction Banner -->
       <div id="instructionBanner" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-950/90 border border-cyan-500/40 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold z-10 shadow-lg pointer-events-none text-center">
-        Egzersizi başlatmak için 'BAŞLAT' butonuna basın.
+        Başlamak için yeşil '1' noktasına dokunun! Dokunduğunuz anda süre otomatik başlar.
       </div>
 
-      <!-- Interactive Drawing Canvas -->
+      <!-- Interactive Canvas -->
       <canvas id="drawingCanvas" class="w-full h-full rounded-2xl border border-slate-800/80 bg-slate-950 cursor-crosshair"></canvas>
 
     </div>
@@ -166,16 +170,12 @@
     <!-- TRAINER & CONTROL PANEL -->
     <div class="flex items-center justify-between w-full max-w-4xl mx-auto bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
       <div class="text-xs text-slate-400 font-medium">
-        SPPlab CortexTrace System | Giriş Modu: <span id="inputModeBadge" class="text-cyan-400 font-bold">Tablet Kalemi</span>
+        SPPlab CortexTrace System | Çizgi Dışı Algılama Sensörü & Otomatik Kronometre Aktif
       </div>
       <div class="flex space-x-2">
-        <button onclick="recordEvaluation(true)" class="bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-400 font-bold py-2 px-4 rounded-xl transition text-xs flex items-center space-x-1.5">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Tamamlandı (🟢)</span>
-        </button>
         <button onclick="openReportModal()" class="bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-300 font-bold py-2 px-4 rounded-xl transition text-xs flex items-center space-x-1.5">
           <i class="fa-solid fa-chart-pie"></i>
-          <span>Rapor</span>
+          <span>Detaylı Rapor</span>
         </button>
       </div>
     </div>
@@ -192,8 +192,8 @@
             <i class="fa-solid fa-chart-column text-xl"></i>
           </div>
           <div>
-            <h3 class="text-lg font-bold text-white">CortexTrace Çizim Raporu</h3>
-            <p class="text-xs text-slate-400">SPPlab Visuomotor Performans Analizi</p>
+            <h3 class="text-lg font-bold text-white">CortexTrace Performans Raporu</h3>
+            <p class="text-xs text-slate-400">SPPlab Visuomotor & Trail Making Skor Kartı</p>
           </div>
         </div>
         <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-2 text-lg">
@@ -203,20 +203,20 @@
 
       <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
-          <span class="text-[11px] text-slate-400 font-medium uppercase">Çalışma Etkinliği</span>
-          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Trail Making</p>
+          <span class="text-[11px] text-slate-400 font-medium uppercase">Çalışma Modu</span>
+          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Trail B (1-A-2-B...)</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Giriş Aracı</span>
           <p id="rptInput" class="text-sm font-bold text-emerald-400 font-mono-custom mt-1">Tablet Kalemi</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
-          <span class="text-[11px] text-slate-400 font-medium uppercase">Toplam Hata</span>
+          <span class="text-[11px] text-slate-400 font-medium uppercase">Çizgi Dışı Hata</span>
           <p id="rptErrors" class="text-2xl font-black text-rose-400 font-mono-custom mt-1">0</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Tamamlama Süresi</span>
-          <p id="rptTime" class="text-2xl font-black text-amber-400 font-mono-custom mt-1">00:00</p>
+          <p id="rptTime" class="text-2xl font-black text-amber-400 font-mono-custom mt-1">00:00.0</p>
         </div>
       </div>
 
@@ -235,22 +235,23 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // State Variables
-    let activeTask = 'trail'; // 'trail', 'path', 'infinity'
-    let inputMode = 'pen'; // 'pen', 'touch'
+    let activeTask = 'trailAB';
+    let inputMode = 'pen';
     let isDrawing = false;
-    let isRunning = false;
+    let isTimerRunning = false;
     
-    let brushSize = 4;
+    let brushSize = 5;
+    let pathTolerance = 45; // Çizgi dışı tolerans sınırı (px)
     let errorCount = 0;
-    let elapsedTime = 0;
+    let lastErrorTime = 0;
+    let startTime = 0;
     let timerInterval = null;
 
-    // Trail Making State
     let trailNodes = [];
     let nextNodeIndex = 0;
 
-    // Canvas Setup
+    let audioCtx = null;
+
     const canvas = document.getElementById('drawingCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -258,35 +259,52 @@
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
       setupCanvasEvents();
+      resetTask();
     });
+
+    function playBeep(freq = 300, duration = 0.1) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
 
     function resizeCanvas() {
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width - 32;
       canvas.height = rect.height - 32;
-      if (isRunning) drawTaskTemplate();
+      drawTaskTemplate();
     }
 
     function setInputMode(mode) {
       inputMode = mode;
       const btnPen = document.getElementById('btnInputPen');
       const btnTouch = document.getElementById('btnInputTouch');
-      const badge = document.getElementById('inputModeBadge');
 
       if (mode === 'pen') {
         btnPen.className = "py-1.5 text-xs font-bold rounded-lg bg-cyan-600 text-white transition flex items-center justify-center gap-1.5";
         btnTouch.className = "py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5";
-        badge.textContent = "Tablet Kalemi";
       } else {
         btnTouch.className = "py-1.5 text-xs font-bold rounded-lg bg-cyan-600 text-white transition flex items-center justify-center gap-1.5";
         btnPen.className = "py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5";
-        badge.textContent = "Parmak Dokunmatik";
       }
     }
 
-    function updateBrushSize(val) {
-      brushSize = parseInt(val);
-      document.getElementById('brushSizeLabel').textContent = val + 'px';
+    function updateTolerance(val) {
+      pathTolerance = parseInt(val);
+      document.getElementById('toleranceLabel').textContent = val + 'px';
     }
 
     function changeTask(task) {
@@ -294,76 +312,112 @@
       resetTask();
     }
 
-    function startTask() {
-      isRunning = true;
+    function resetTask() {
+      stopTimer();
       errorCount = 0;
-      elapsedTime = 0;
+      nextNodeIndex = 0;
       document.getElementById('badgeErrors').textContent = '0';
+      document.getElementById('badgeTime').textContent = '00:00.0';
       
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        elapsedTime++;
-        const mins = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
-        const secs = (elapsedTime % 60).toString().padStart(2, '0');
-        document.getElementById('badgeTime').textContent = `${mins}:${secs}`;
-      }, 1000);
-
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawTaskTemplate();
     }
 
-    function resetTask() {
-      isRunning = false;
+    function startTimer() {
+      if (isTimerRunning) return;
+      isTimerRunning = true;
+      startTime = Date.now();
+
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const mins = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+        const secs = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+        const ms = Math.floor((elapsed % 1000) / 100);
+        document.getElementById('badgeTime').textContent = `${mins}:${secs}.${ms}`;
+      }, 100);
+    }
+
+    function stopTimer() {
+      isTimerRunning = false;
       clearInterval(timerInterval);
-      document.getElementById('badgeTime').textContent = '00:00';
-      document.getElementById('badgeErrors').textContent = '0';
-      clearCanvas();
     }
 
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (isRunning) drawTaskTemplate();
-    }
-
-    // Task Rendering & Logic
     function drawTaskTemplate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const banner = document.getElementById('instructionBanner');
 
-      if (activeTask === 'trail') {
-        banner.textContent = '✏️ TRAIL MAKING: Sırasıyla 1 ➔ A ➔ 2 ➔ B ➔ 3 ➔ C noktalarını birleştirin!';
-        setupTrailNodes();
+      if (activeTask === 'trailAB') {
+        banner.textContent = "✏️ TRAIL B: Başlamak için yeşil '1' noktasına dokunun! Çizgi dışına çıkmadan 1 ➔ A ➔ 2 ➔ B ... 7 ➔ G birleştirin.";
+        setupTrailABNodes();
+      } else if (activeTask === 'trailNum') {
+        banner.textContent = "🔢 TRAIL A: Başlamak için yeşil '1' noktasına dokunun! Çizgi dışına çıkmadan 1'den 15'e kadar sıralayın.";
+        setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = '🛣️ HASSAS PARKUR: Kırmızı hattan taşmadan yeşil yolda kalemi/parmağı ilerletin!';
+        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil hattan taşmadan kalemi/parmağı bitiş noktasına kaydırın!";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
-        banner.textContent = '♾️ SONSUZLUK RİTMİ: Ekrandaki kılavuz sonsuzluk (8) çizgisini kesintisiz takip edin!';
+        banner.textContent = "♾️ SONSUZLUK RİTMİ: Ekrandaki sonsuzluk kılavuz çizgisini kesintisiz takip edin!";
         drawInfinityGuide();
       }
     }
 
-    // 1. Trail Making Task Setup
-    function setupTrailNodes() {
-      trailNodes = [
-        { label: '1', x: canvas.width * 0.15, y: canvas.height * 0.2 },
-        { label: 'A', x: canvas.width * 0.45, y: canvas.height * 0.25 },
-        { label: '2', x: canvas.width * 0.8, y: canvas.height * 0.3 },
-        { label: 'B', x: canvas.width * 0.25, y: canvas.height * 0.75 },
-        { label: '3', x: canvas.width * 0.6, y: canvas.height * 0.7 },
-        { label: 'C', x: canvas.width * 0.85, y: canvas.height * 0.8 }
+    function setupTrailABNodes() {
+      const sequence = ['1', 'A', '2', 'B', '3', 'C', '4', 'D', '5', 'E', '6', 'F', '7', 'G'];
+      const positions = [
+        { x: 0.15, y: 0.2 }, { x: 0.35, y: 0.15 }, { x: 0.6, y: 0.2 }, { x: 0.85, y: 0.25 },
+        { x: 0.2, y: 0.45 }, { x: 0.45, y: 0.4 }, { x: 0.7, y: 0.5 }, { x: 0.9, y: 0.55 },
+        { x: 0.1, y: 0.75 }, { x: 0.3, y: 0.8 }, { x: 0.55, y: 0.75 }, { x: 0.8, y: 0.85 },
+        { x: 0.4, y: 0.9 }, { x: 0.65, y: 0.9 }
       ];
 
-      nextNodeIndex = 0;
+      trailNodes = sequence.map((label, idx) => ({
+        label: label,
+        x: canvas.width * positions[idx].x,
+        y: canvas.height * positions[idx].y
+      }));
 
-      trailNodes.forEach(node => {
+      document.getElementById('badgeNextNode').textContent = trailNodes[0].label;
+      renderNodes();
+    }
+
+    function setupTrailNumNodes() {
+      trailNodes = [];
+      const positions = [
+        { x: 0.1, y: 0.2 }, { x: 0.3, y: 0.15 }, { x: 0.5, y: 0.2 }, { x: 0.7, y: 0.15 }, { x: 0.9, y: 0.25 },
+        { x: 0.15, y: 0.5 }, { x: 0.35, y: 0.45 }, { x: 0.55, y: 0.5 }, { x: 0.75, y: 0.45 }, { x: 0.85, y: 0.65 },
+        { x: 0.1, y: 0.8 }, { x: 0.3, y: 0.85 }, { x: 0.5, y: 0.75 }, { x: 0.7, y: 0.85 }, { x: 0.9, y: 0.9 }
+      ];
+
+      for (let i = 1; i <= 15; i++) {
+        trailNodes.push({
+          label: String(i),
+          x: canvas.width * positions[i - 1].x,
+          y: canvas.height * positions[i - 1].y
+        });
+      }
+
+      document.getElementById('badgeNextNode').textContent = trailNodes[0].label;
+      renderNodes();
+    }
+
+    function renderNodes() {
+      trailNodes.forEach((node, idx) => {
         ctx.beginPath();
         ctx.arc(node.x, node.y, 22, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f172a';
+        
+        if (idx === 0) {
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+          ctx.strokeStyle = '#22c55e';
+        } else {
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = '#38bdf8';
+        }
+
         ctx.fill();
         ctx.lineWidth = 3;
-        ctx.strokeStyle = '#38bdf8';
         ctx.stroke();
 
-        ctx.fillStyle = '#f8fafc';
+        ctx.fillStyle = idx === 0 ? '#22c55e' : '#f8fafc';
         ctx.font = 'bold 16px Plus Jakarta Sans';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -371,7 +425,6 @@
       });
     }
 
-    // 2. Path Avoidance Task
     function drawPathTrack() {
       ctx.beginPath();
       ctx.moveTo(50, canvas.height / 2);
@@ -386,7 +439,6 @@
       ctx.stroke();
     }
 
-    // 3. Infinity Symbol Task
     function drawInfinityGuide() {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
@@ -406,7 +458,16 @@
       ctx.setLineDash([]);
     }
 
-    // Drawing Interaction Logic
+    // Out of Bounds Path Deviation Calculator
+    function distanceFromSegment(p, a, b) {
+      const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+      if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+      let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)));
+    }
+
+    // Canvas Events & Out-of-Bounds Sensor
     function setupCanvasEvents() {
       const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -419,44 +480,75 @@
       };
 
       const startDrawing = (e) => {
-        if (!isRunning) return;
-        // Pen mode check
         if (inputMode === 'pen' && e.pointerType && e.pointerType !== 'pen' && e.pointerType !== 'mouse') {
           return;
         }
-        isDrawing = true;
+
         const pos = getPos(e);
+
+        if (activeTask.startsWith('trail') && nextNodeIndex === 0) {
+          const firstNode = trailNodes[0];
+          const dist = Math.hypot(pos.x - firstNode.x, pos.y - firstNode.y);
+
+          if (dist <= 26) {
+            startTimer();
+            markNodeSuccess(firstNode);
+            nextNodeIndex = 1;
+            document.getElementById('badgeNextNode').textContent = trailNodes[1].label;
+          } else {
+            triggerError();
+            return;
+          }
+        }
+
+        isDrawing = true;
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
       };
 
       const draw = (e) => {
-        if (!isDrawing || !isRunning) return;
+        if (!isDrawing) return;
         e.preventDefault();
         const pos = getPos(e);
 
+        let strokeColor = '#38bdf8';
+
+        // Check Out of Bounds Deviation between active nodes
+        if (activeTask.startsWith('trail') && nextNodeIndex > 0 && nextNodeIndex < trailNodes.length) {
+          const prevNode = trailNodes[nextNodeIndex - 1];
+          const targetNode = trailNodes[nextNodeIndex];
+          const deviation = distanceFromSegment(pos, prevNode, targetNode);
+
+          if (deviation > pathTolerance) {
+            strokeColor = '#ef4444'; // Red error stroke
+            if (Date.now() - lastErrorTime > 400) {
+              triggerError();
+              lastErrorTime = Date.now();
+            }
+          }
+        }
+
         ctx.lineTo(pos.x, pos.y);
         ctx.lineWidth = brushSize;
-        ctx.strokeStyle = '#38bdf8';
+        ctx.strokeStyle = strokeColor;
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Check node collision for Trail Making
-        if (activeTask === 'trail' && nextNodeIndex < trailNodes.length) {
+        // Trail Target Collision
+        if (activeTask.startsWith('trail') && nextNodeIndex < trailNodes.length) {
           const target = trailNodes[nextNodeIndex];
           const dist = Math.hypot(pos.x - target.x, pos.y - target.y);
+
           if (dist < 22) {
-            ctx.beginPath();
-            ctx.arc(target.x, target.y, 22, 0, Math.PI * 2);
-            ctx.fillStyle = '#22c55e';
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(target.label, target.x, target.y);
+            markNodeSuccess(target);
             nextNodeIndex++;
 
-            if (nextNodeIndex >= trailNodes.length) {
-              alert('🎉 Trail Making Başarıyla Tamamlandı!');
-              recordEvaluation(true);
+            if (nextNodeIndex < trailNodes.length) {
+              document.getElementById('badgeNextNode').textContent = trailNodes[nextNodeIndex].label;
+            } else {
+              stopTimer();
+              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
+              setTimeout(openReportModal, 300);
             }
           }
         }
@@ -472,16 +564,26 @@
       canvas.addEventListener('pointerleave', stopDrawing);
     }
 
-    function recordEvaluation(success) {
-      if (!success) {
-        errorCount++;
-        document.getElementById('badgeErrors').textContent = errorCount;
-      }
-      openReportModal();
+    function triggerError() {
+      errorCount++;
+      document.getElementById('badgeErrors').textContent = errorCount;
+      playBeep(220, 0.15); // Alarm Beep
+    }
+
+    function markNodeSuccess(node) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#22c55e';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px Plus Jakarta Sans';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node.label, node.x, node.y);
     }
 
     function openReportModal() {
-      const taskNames = { trail: 'Trail Making', path: 'Hassas Parkur', infinity: 'Sonsuzluk Ritim' };
+      const taskNames = { trailAB: 'Trail B (1-A-2-B...)', trailNum: 'Trail A (1-15)', path: 'Hassas Parkur', infinity: 'Sonsuzluk Ritim' };
       document.getElementById('rptTask').textContent = taskNames[activeTask];
       document.getElementById('rptInput').textContent = inputMode === 'pen' ? 'Tablet Kalemi' : 'Parmak';
       document.getElementById('rptErrors').textContent = errorCount;
@@ -499,10 +601,10 @@
       const csvContent = "data:text/csv;charset=utf-8," 
         + "Parametre,Deger\n"
         + `Laboratuvar,SPPlab\n`
-        + `Yazilim,CortexTrace\n`
-        + `Calisma Etkinligi,${activeTask}\n`
+        + `Yazilim,CortexTrace Pro\n`
+        + `Calisma Modu,${activeTask}\n`
         + `Giris Araci,${inputMode}\n`
-        + `Toplam Hata,${errorCount}\n`
+        + `Cizgi Disi Hata,${errorCount}\n`
         + `Tamamlama Suresi,${timeStr}\n`;
 
       const encodedUri = encodeURI(csvContent);
