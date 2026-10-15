@@ -61,7 +61,7 @@
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.8 Random</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.9 Fixed</span>
           </div>
           <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
@@ -110,7 +110,7 @@
           <option value="trailAB">🔤 Trail B (1-A-2-B-3-C... Çapraz)</option>
           <option value="trailNum">🔢 Trail A (1-15 Sayı Sıralama)</option>
           <option value="path">🛣️ Hassas Parkur Takip (Sensörlü)</option>
-          <option value="infinity">♾️ Sonsuzluk & Spiral Ritim (Tam Tur Sensörlü)</option>
+          <option value="infinity" selected>♾️ Sonsuzluk & Spiral Ritim (Tam Tur Sensörlü)</option>
         </select>
       </div>
 
@@ -148,7 +148,7 @@
         <div class="flex gap-2">
           <button onclick="resetTask()" class="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold py-2 px-3 rounded-xl shadow-lg transition text-xs flex items-center justify-center gap-1.5">
             <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Yeniden Karıştır</span>
+            <span>Sıfırla & Hazırla</span>
           </button>
         </div>
       </div>
@@ -205,7 +205,7 @@
       <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Çalışma Modu</span>
-          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Trail B</p>
+          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Sonsuzluk Ritim</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Giriş Aracı</span>
@@ -236,7 +236,7 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    let activeTask = 'trailAB';
+    let activeTask = 'infinity';
     let inputMode = 'pen';
     let isDrawing = false;
     let isTimerRunning = false;
@@ -258,8 +258,8 @@
 
     let infinityLeftReached = false;
     let infinityRightReached = false;
-    let infinityLeftCheckNode = { x: 0, y: 0, radius: 35 };
-    let infinityRightCheckNode = { x: 0, y: 0, radius: 35 };
+    let infinityLeftCheckNode = { x: 0, y: 0, radius: 45 };
+    let infinityRightCheckNode = { x: 0, y: 0, radius: 45 };
 
     let audioCtx = null;
 
@@ -369,7 +369,7 @@
         banner.textContent = "🔢 TRAIL A: Yeşil '1' noktasına basıp başlayın! 1'den 15'e kadar sırayla birleştirin.";
         setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
+        banner.textContent = "流域 HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
         banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp her iki halkayı dolaşarak tekrar merkeze dönün!";
@@ -377,7 +377,6 @@
       }
     }
 
-    // ÇAKIŞMAYAN RASTGELE KOORDİNAT ÜRETİCİ
     function generateRandomPositions(count, nodeRadius = 26, minDistance = 65) {
       const positions = [];
       const padding = 50;
@@ -532,12 +531,12 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      pathStartNode = { x: cx, y: cy, radius: 24 };
-      infinityLeftCheckNode = { x: cx - w * 0.7, y: cy, radius: 35 };
-      infinityRightCheckNode = { x: cx + w * 0.7, y: cy, radius: 35 };
+      pathStartNode = { x: cx, y: cy, radius: 28 };
+      infinityLeftCheckNode = { x: cx - w * 0.65, y: cy, radius: 45 };
+      infinityRightCheckNode = { x: cx + w * 0.65, y: cy, radius: 45 };
 
       ctx.beginPath();
-      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 24, 0, Math.PI * 2);
       ctx.fillStyle = '#22c55e';
       ctx.fill();
       ctx.fillStyle = '#ffffff';
@@ -594,7 +593,6 @@
             nextNodeIndex = 1;
             document.getElementById('badgeNextNode').textContent = trailNodes[1].label;
           } else {
-            // Yanlış ilk düğüme basıldıysa hata ver
             checkWrongNodeHit(pos);
             return;
           }
@@ -602,7 +600,7 @@
 
         if ((activeTask === 'path' || activeTask === 'infinity') && !isTimerRunning && !taskCompleted) {
           const dist = Math.hypot(pos.x - pathStartNode.x, pos.y - pathStartNode.y);
-          if (dist <= pathStartNode.radius + 10) {
+          if (dist <= pathStartNode.radius + 15) {
             startTimer();
             infinityLeftReached = false;
             infinityRightReached = false;
@@ -619,18 +617,16 @@
       };
 
       const draw = (e) => {
-        if (!isDrawing) return;
+        if (!isDrawing || taskCompleted) return;
         e.preventDefault();
         const pos = getPos(e);
 
         let strokeColor = '#38bdf8';
 
-        // TRAIL MAKING: Yolda hata yok, serbest çizim
         if (activeTask.startsWith('trail')) {
           checkWrongNodeHit(pos);
         }
 
-        // PARKUR VE SONSUZLUK: Yoldan taşma kontrolü korundu
         if ((activeTask === 'path' || activeTask === 'infinity') && isTimerRunning) {
           const deviation = getMinDistanceFromCurve(pos, pathCurvePoints);
 
@@ -647,8 +643,9 @@
             if (distEnd <= pathEndNode.radius) {
               stopTimer();
               taskCompleted = true;
+              isDrawing = false;
               document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 300);
+              setTimeout(openReportModal, 200);
             }
           }
 
@@ -660,11 +657,13 @@
             if (distLeft <= infinityLeftCheckNode.radius) infinityLeftReached = true;
             if (distRight <= infinityRightCheckNode.radius) infinityRightReached = true;
 
-            if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius) {
+            // Her iki halkayı dolaşıp merkeze döndüğünde durdur
+            if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius + 15) {
               stopTimer();
               taskCompleted = true;
+              isDrawing = false;
               document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 300);
+              setTimeout(openReportModal, 200);
             }
           }
         }
@@ -675,7 +674,6 @@
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Trail Making Doğru Hedefe Ulaşma Kontrolü
         if (activeTask.startsWith('trail') && nextNodeIndex < trailNodes.length) {
           const target = trailNodes[nextNodeIndex];
           const dist = Math.hypot(pos.x - target.x, pos.y - target.y);
@@ -689,8 +687,9 @@
             } else {
               stopTimer();
               taskCompleted = true;
+              isDrawing = false;
               document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 300);
+              setTimeout(openReportModal, 200);
             }
           }
         }
@@ -706,7 +705,6 @@
       canvas.addEventListener('pointerleave', stopDrawing);
     }
 
-    // Yanlış Düğüme/Hedefe Dokunma Sensörü
     function checkWrongNodeHit(pos) {
       if (!activeTask.startsWith('trail')) return;
 
