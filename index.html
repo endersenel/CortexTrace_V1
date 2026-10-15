@@ -61,7 +61,7 @@
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.5</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.6</span>
           </div>
           <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
@@ -110,7 +110,7 @@
           <option value="trailAB">🔤 Trail B (1-A-2-B-3-C... Çapraz)</option>
           <option value="trailNum">🔢 Trail A (1-15 Sayı Sıralama)</option>
           <option value="path">🛣️ Hassas Parkur Takip (Sensörlü)</option>
-          <option value="infinity">♾️ Sonsuzluk & Spiral Ritim</option>
+          <option value="infinity">♾️ Sonsuzluk & Spiral Ritim (Tam Tur Sensörlü)</option>
         </select>
       </div>
 
@@ -159,7 +159,7 @@
       
       <!-- Dynamic Instruction Banner -->
       <div id="instructionBanner" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-950/90 border border-cyan-500/40 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold z-10 shadow-lg pointer-events-none text-center">
-        Başlamak için yeşil 'BAŞLA' noktasına dokunun! Dokunduğunuz anda süre otomatik başlar.
+        Başlamak için yeşil 'BAŞLA' noktasına dokunun!
       </div>
 
       <!-- Interactive Canvas -->
@@ -251,10 +251,16 @@
     let trailNodes = [];
     let nextNodeIndex = 0;
 
-    // Path specific variables
+    // Path & Infinity Checkpoint tracking
     let pathStartNode = { x: 0, y: 0, radius: 24 };
     let pathEndNode = { x: 0, y: 0, radius: 24 };
     let pathCurvePoints = [];
+
+    // Infinity tracking flags
+    let infinityLeftReached = false;
+    let infinityRightReached = false;
+    let infinityLeftCheckNode = { x: 0, y: 0, radius: 30 };
+    let infinityRightCheckNode = { x: 0, y: 0, radius: 30 };
 
     let audioCtx = null;
 
@@ -324,6 +330,9 @@
       errorCount = 0;
       nextNodeIndex = 0;
       taskCompleted = false;
+      infinityLeftReached = false;
+      infinityRightReached = false;
+
       document.getElementById('badgeErrors').textContent = '0';
       document.getElementById('badgeTime').textContent = '00:00.0';
       
@@ -361,10 +370,10 @@
         banner.textContent = "🔢 TRAIL A: Yeşil '1' noktasına basıp başlayın! 1'den 15'e kadar sırayla birleştirin.";
         setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
+        banner.textContent = "®️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
-        banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp sonsuzluk çizgisini kesintisiz takip edin!";
+        banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp her iki halkayı dolaşarak tekrar merkeze dönün!";
         drawInfinityGuide();
       }
     }
@@ -433,12 +442,10 @@
       });
     }
 
-    // Hassas Parkur Çizimi & Noktaları
     function drawPathTrack() {
       pathStartNode = { x: 60, y: canvas.height / 2, radius: 26 };
       pathEndNode = { x: canvas.width - 60, y: canvas.height / 2, radius: 26 };
 
-      // Pre-calculate path curve reference points
       pathCurvePoints = [];
       const steps = 100;
       for (let i = 0; i <= steps; i++) {
@@ -448,7 +455,6 @@
         pathCurvePoints.push({ x, y });
       }
 
-      // Draw Green Safe Corridor
       ctx.beginPath();
       ctx.moveTo(pathCurvePoints[0].x, pathCurvePoints[0].y);
       for (let i = 1; i < pathCurvePoints.length; i++) {
@@ -459,12 +465,10 @@
       ctx.lineCap = 'round';
       ctx.stroke();
 
-      // Draw Boundary Lines
       ctx.lineWidth = 3;
       ctx.strokeStyle = '#ef4444';
       ctx.stroke();
 
-      // Start Node (Green)
       ctx.beginPath();
       ctx.arc(pathStartNode.x, pathStartNode.y, pathStartNode.radius, 0, Math.PI * 2);
       ctx.fillStyle = '#22c55e';
@@ -475,7 +479,6 @@
       ctx.textBaseline = 'middle';
       ctx.fillText('BAŞLA', pathStartNode.x, pathStartNode.y);
 
-      // End Node (Red)
       ctx.beginPath();
       ctx.arc(pathEndNode.x, pathEndNode.y, pathEndNode.radius, 0, Math.PI * 2);
       ctx.fillStyle = '#ef4444';
@@ -486,7 +489,6 @@
       document.getElementById('badgeNextNode').textContent = 'BAŞLA 🟢';
     }
 
-    // Sonsuzluk Çizimi & Noktası
     function drawInfinityGuide() {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
@@ -501,14 +503,21 @@
         if (t === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.lineWidth = pathTolerance * 1.5;
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.12)';
+      ctx.stroke();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
       ctx.setLineDash([10, 10]);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Start Node
+      // Start Node (Center)
       pathStartNode = { x: cx, y: cy, radius: 24 };
+      infinityLeftCheckNode = { x: cx - w * 0.7, y: cy, radius: 35 };
+      infinityRightCheckNode = { x: cx + w * 0.7, y: cy, radius: 35 };
+
       ctx.beginPath();
       ctx.arc(cx, cy, 22, 0, Math.PI * 2);
       ctx.fillStyle = '#22c55e';
@@ -539,7 +548,6 @@
       return minDist;
     }
 
-    // Canvas Events
     function setupCanvasEvents() {
       const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -558,7 +566,6 @@
 
         const pos = getPos(e);
 
-        // TRAIL MAKING AUTO-START
         if (activeTask.startsWith('trail') && nextNodeIndex === 0) {
           const firstNode = trailNodes[0];
           const dist = Math.hypot(pos.x - firstNode.x, pos.y - firstNode.y);
@@ -574,12 +581,13 @@
           }
         }
 
-        // PATH & INFINITY AUTO-START
         if ((activeTask === 'path' || activeTask === 'infinity') && !isTimerRunning && !taskCompleted) {
           const dist = Math.hypot(pos.x - pathStartNode.x, pos.y - pathStartNode.y);
           if (dist <= pathStartNode.radius + 10) {
             startTimer();
-            document.getElementById('badgeNextNode').textContent = 'BİTİŞ 🏁';
+            infinityLeftReached = false;
+            infinityRightReached = false;
+            document.getElementById('badgeNextNode').textContent = activeTask === 'path' ? 'BİTİŞ 🏁' : 'DÖNGÜ ♾️';
           } else {
             triggerError();
             return;
@@ -598,7 +606,6 @@
 
         let strokeColor = '#38bdf8';
 
-        // Out of Bounds Detection for TRAIL MAKING
         if (activeTask.startsWith('trail') && nextNodeIndex > 0 && nextNodeIndex < trailNodes.length) {
           const prevNode = trailNodes[nextNodeIndex - 1];
           const targetNode = trailNodes[nextNodeIndex];
@@ -613,7 +620,6 @@
           }
         }
 
-        // Out of Bounds Detection for PARKUR & INFINITY
         if ((activeTask === 'path' || activeTask === 'infinity') && isTimerRunning) {
           const deviation = getMinDistanceFromCurve(pos, pathCurvePoints);
 
@@ -625,10 +631,27 @@
             }
           }
 
-          // Check PARKUR END NODE Collision
           if (activeTask === 'path') {
             const distEnd = Math.hypot(pos.x - pathEndNode.x, pos.y - pathEndNode.y);
             if (distEnd <= pathEndNode.radius) {
+              stopTimer();
+              taskCompleted = true;
+              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
+              setTimeout(openReportModal, 300);
+            }
+          }
+
+          // INFINITY FULL-LOOP AUTOMATIC STOP DETECTOR
+          if (activeTask === 'infinity') {
+            const distLeft = Math.hypot(pos.x - infinityLeftCheckNode.x, pos.y - infinityLeftCheckNode.y);
+            const distRight = Math.hypot(pos.x - infinityRightCheckNode.x, pos.y - infinityRightCheckNode.y);
+            const distCenter = Math.hypot(pos.x - pathStartNode.x, pos.y - pathStartNode.y);
+
+            if (distLeft <= infinityLeftCheckNode.radius) infinityLeftReached = true;
+            if (distRight <= infinityRightCheckNode.radius) infinityRightReached = true;
+
+            // Both loops traversed and returned to center = STOP!
+            if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius) {
               stopTimer();
               taskCompleted = true;
               document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
@@ -643,7 +666,6 @@
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Trail Collision Checking
         if (activeTask.startsWith('trail') && nextNodeIndex < trailNodes.length) {
           const target = trailNodes[nextNodeIndex];
           const dist = Math.hypot(pos.x - target.x, pos.y - target.y);
