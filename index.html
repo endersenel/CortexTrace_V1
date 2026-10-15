@@ -61,7 +61,7 @@
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.6</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.7</span>
           </div>
           <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
@@ -132,7 +132,7 @@
       <!-- 3. Tolerance Slider -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-shield-halved text-purple-400 mr-1.5"></i> Çizgi Hassasiyeti (Tolerans)
+          <i class="fa-solid fa-shield-halved text-purple-400 mr-1.5"></i> Parkur Toleransı
         </label>
         <div class="flex items-center space-x-3 bg-slate-950 p-2 rounded-xl border border-slate-800">
           <input type="range" id="toleranceSlider" min="20" max="80" value="40" oninput="updateTolerance(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
@@ -170,7 +170,7 @@
     <!-- TRAINER & CONTROL PANEL -->
     <div class="flex items-center justify-between w-full max-w-4xl mx-auto bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
       <div class="text-xs text-slate-400 font-medium">
-        SPPlab CortexTrace System | Çizgi Dışı Algılama Sensörü & Otomatik Kronometre Aktif
+        SPPlab CortexTrace System | Hedef Odaklı Hata Sensörü & Otomatik Kronometre
       </div>
       <div class="flex space-x-2">
         <button onclick="openReportModal()" class="bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-300 font-bold py-2 px-4 rounded-xl transition text-xs flex items-center space-x-1.5">
@@ -211,7 +211,7 @@
           <p id="rptInput" class="text-sm font-bold text-emerald-400 font-mono-custom mt-1">Tablet Kalemi</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
-          <span class="text-[11px] text-slate-400 font-medium uppercase">Çizgi Dışı Hata</span>
+          <span class="text-[11px] text-slate-400 font-medium uppercase">Yanlış Hedef Hataları</span>
           <p id="rptErrors" class="text-2xl font-black text-rose-400 font-mono-custom mt-1">0</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
@@ -251,16 +251,14 @@
     let trailNodes = [];
     let nextNodeIndex = 0;
 
-    // Path & Infinity Checkpoint tracking
     let pathStartNode = { x: 0, y: 0, radius: 24 };
     let pathEndNode = { x: 0, y: 0, radius: 24 };
     let pathCurvePoints = [];
 
-    // Infinity tracking flags
     let infinityLeftReached = false;
     let infinityRightReached = false;
-    let infinityLeftCheckNode = { x: 0, y: 0, radius: 30 };
-    let infinityRightCheckNode = { x: 0, y: 0, radius: 30 };
+    let infinityLeftCheckNode = { x: 0, y: 0, radius: 35 };
+    let infinityRightCheckNode = { x: 0, y: 0, radius: 35 };
 
     let audioCtx = null;
 
@@ -370,7 +368,7 @@
         banner.textContent = "🔢 TRAIL A: Yeşil '1' noktasına basıp başlayın! 1'den 15'e kadar sırayla birleştirin.";
         setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = "®️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
+        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
         banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp her iki halkayı dolaşarak tekrar merkeze dönün!";
@@ -513,7 +511,6 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Start Node (Center)
       pathStartNode = { x: cx, y: cy, radius: 24 };
       infinityLeftCheckNode = { x: cx - w * 0.7, y: cy, radius: 35 };
       infinityRightCheckNode = { x: cx + w * 0.7, y: cy, radius: 35 };
@@ -576,7 +573,8 @@
             nextNodeIndex = 1;
             document.getElementById('badgeNextNode').textContent = trailNodes[1].label;
           } else {
-            triggerError();
+            // Yanlış ilk düğüme basıldıysa hata ver
+            checkWrongNodeHit(pos);
             return;
           }
         }
@@ -606,20 +604,12 @@
 
         let strokeColor = '#38bdf8';
 
-        if (activeTask.startsWith('trail') && nextNodeIndex > 0 && nextNodeIndex < trailNodes.length) {
-          const prevNode = trailNodes[nextNodeIndex - 1];
-          const targetNode = trailNodes[nextNodeIndex];
-          const deviation = distanceFromSegment(pos, prevNode, targetNode);
-
-          if (deviation > pathTolerance) {
-            strokeColor = '#ef4444';
-            if (Date.now() - lastErrorTime > 350) {
-              triggerError();
-              lastErrorTime = Date.now();
-            }
-          }
+        // TRAIL MAKING: Yolda hata yok, serbest çizim
+        if (activeTask.startsWith('trail')) {
+          checkWrongNodeHit(pos);
         }
 
+        // PARKUR VE SONSUZLUK: Yoldan taşma kontrolü korundu
         if ((activeTask === 'path' || activeTask === 'infinity') && isTimerRunning) {
           const deviation = getMinDistanceFromCurve(pos, pathCurvePoints);
 
@@ -641,7 +631,6 @@
             }
           }
 
-          // INFINITY FULL-LOOP AUTOMATIC STOP DETECTOR
           if (activeTask === 'infinity') {
             const distLeft = Math.hypot(pos.x - infinityLeftCheckNode.x, pos.y - infinityLeftCheckNode.y);
             const distRight = Math.hypot(pos.x - infinityRightCheckNode.x, pos.y - infinityRightCheckNode.y);
@@ -650,7 +639,6 @@
             if (distLeft <= infinityLeftCheckNode.radius) infinityLeftReached = true;
             if (distRight <= infinityRightCheckNode.radius) infinityRightReached = true;
 
-            // Both loops traversed and returned to center = STOP!
             if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius) {
               stopTimer();
               taskCompleted = true;
@@ -666,6 +654,7 @@
         ctx.lineCap = 'round';
         ctx.stroke();
 
+        // Trail Making Doğru Hedefe Ulaşma Kontrolü
         if (activeTask.startsWith('trail') && nextNodeIndex < trailNodes.length) {
           const target = trailNodes[nextNodeIndex];
           const dist = Math.hypot(pos.x - target.x, pos.y - target.y);
@@ -694,6 +683,23 @@
       canvas.addEventListener('pointermove', draw);
       canvas.addEventListener('pointerup', stopDrawing);
       canvas.addEventListener('pointerleave', stopDrawing);
+    }
+
+    // Yanlış Düğüme/Hedefe Dokunma Sensörü
+    function checkWrongNodeHit(pos) {
+      if (!activeTask.startsWith('trail')) return;
+
+      trailNodes.forEach((node, idx) => {
+        if (idx !== nextNodeIndex && idx >= nextNodeIndex) {
+          const dist = Math.hypot(pos.x - node.x, pos.y - node.y);
+          if (dist <= 22) {
+            if (Date.now() - lastErrorTime > 500) {
+              triggerError();
+              lastErrorTime = Date.now();
+            }
+          }
+        }
+      });
     }
 
     function triggerError() {
@@ -736,7 +742,7 @@
         + `Yazilim,CortexTrace Pro\n`
         + `Calisma Modu,${activeTask}\n`
         + `Giris Araci,${inputMode}\n`
-        + `Cizgi Disi Hata,${errorCount}\n`
+        + `Yanlis Hedef Hatasi,${errorCount}\n`
         + `Tamamlama Suresi,${timeStr}\n`;
 
       const encodedUri = encodeURI(csvContent);
