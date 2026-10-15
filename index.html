@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CortexTrace Pro - SPPlab | Trail Making & Visuomotor Platformu</title>
+  <title>CortexTrace Pro - SPPlab | Visuomotor & Parkur Platformu</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -61,7 +61,7 @@
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.2</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.5</span>
           </div>
           <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
@@ -71,7 +71,7 @@
       <div class="flex items-center space-x-2 sm:space-x-3">
         <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center space-x-2">
           <i class="fa-solid fa-bullseye text-cyan-400 text-xs"></i>
-          <span class="text-xs text-slate-400 font-medium">Sıradaki:</span>
+          <span class="text-xs text-slate-400 font-medium">Hedef:</span>
           <span id="badgeNextNode" class="text-xs font-bold text-cyan-400 font-mono-custom">1</span>
         </div>
 
@@ -104,12 +104,12 @@
       <!-- 1. Active Task Selection -->
       <div class="flex flex-col justify-between">
         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center">
-          <i class="fa-solid fa-route text-cyan-400 mr-1.5"></i> Trail Making Modu
+          <i class="fa-solid fa-route text-cyan-400 mr-1.5"></i> Etkinlik Modu
         </label>
         <select id="taskSelect" onchange="changeTask(this.value)" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold rounded-xl p-2.5 focus:ring-2 focus:ring-cyan-500 outline-none">
           <option value="trailAB">🔤 Trail B (1-A-2-B-3-C... Çapraz)</option>
           <option value="trailNum">🔢 Trail A (1-15 Sayı Sıralama)</option>
-          <option value="path">Hassas Parkur Takip</option>
+          <option value="path">🛣️ Hassas Parkur Takip (Sensörlü)</option>
           <option value="infinity">♾️ Sonsuzluk & Spiral Ritim</option>
         </select>
       </div>
@@ -135,8 +135,8 @@
           <i class="fa-solid fa-shield-halved text-purple-400 mr-1.5"></i> Çizgi Hassasiyeti (Tolerans)
         </label>
         <div class="flex items-center space-x-3 bg-slate-950 p-2 rounded-xl border border-slate-800">
-          <input type="range" id="toleranceSlider" min="20" max="80" value="45" oninput="updateTolerance(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-          <span id="toleranceLabel" class="text-xs font-mono-custom text-cyan-400 font-bold min-w-[35px]">45px</span>
+          <input type="range" id="toleranceSlider" min="20" max="80" value="40" oninput="updateTolerance(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+          <span id="toleranceLabel" class="text-xs font-mono-custom text-cyan-400 font-bold min-w-[35px]">40px</span>
         </div>
       </div>
 
@@ -159,7 +159,7 @@
       
       <!-- Dynamic Instruction Banner -->
       <div id="instructionBanner" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-950/90 border border-cyan-500/40 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold z-10 shadow-lg pointer-events-none text-center">
-        Başlamak için yeşil '1' noktasına dokunun! Dokunduğunuz anda süre otomatik başlar.
+        Başlamak için yeşil 'BAŞLA' noktasına dokunun! Dokunduğunuz anda süre otomatik başlar.
       </div>
 
       <!-- Interactive Canvas -->
@@ -193,7 +193,7 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-white">CortexTrace Performans Raporu</h3>
-            <p class="text-xs text-slate-400">SPPlab Visuomotor & Trail Making Skor Kartı</p>
+            <p class="text-xs text-slate-400">SPPlab Visuomotor & Parkur Skor Kartı</p>
           </div>
         </div>
         <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-2 text-lg">
@@ -204,7 +204,7 @@
       <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Çalışma Modu</span>
-          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Trail B (1-A-2-B...)</p>
+          <p id="rptTask" class="text-sm font-bold text-cyan-400 font-mono-custom mt-1">Trail B</p>
         </div>
         <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80">
           <span class="text-[11px] text-slate-400 font-medium uppercase">Giriş Aracı</span>
@@ -239,9 +239,10 @@
     let inputMode = 'pen';
     let isDrawing = false;
     let isTimerRunning = false;
+    let taskCompleted = false;
     
     let brushSize = 5;
-    let pathTolerance = 45; // Çizgi dışı tolerans sınırı (px)
+    let pathTolerance = 40;
     let errorCount = 0;
     let lastErrorTime = 0;
     let startTime = 0;
@@ -249,6 +250,11 @@
 
     let trailNodes = [];
     let nextNodeIndex = 0;
+
+    // Path specific variables
+    let pathStartNode = { x: 0, y: 0, radius: 24 };
+    let pathEndNode = { x: 0, y: 0, radius: 24 };
+    let pathCurvePoints = [];
 
     let audioCtx = null;
 
@@ -305,6 +311,7 @@
     function updateTolerance(val) {
       pathTolerance = parseInt(val);
       document.getElementById('toleranceLabel').textContent = val + 'px';
+      if (!isTimerRunning) drawTaskTemplate();
     }
 
     function changeTask(task) {
@@ -316,6 +323,7 @@
       stopTimer();
       errorCount = 0;
       nextNodeIndex = 0;
+      taskCompleted = false;
       document.getElementById('badgeErrors').textContent = '0';
       document.getElementById('badgeTime').textContent = '00:00.0';
       
@@ -347,16 +355,16 @@
       const banner = document.getElementById('instructionBanner');
 
       if (activeTask === 'trailAB') {
-        banner.textContent = "✏️ TRAIL B: Başlamak için yeşil '1' noktasına dokunun! Çizgi dışına çıkmadan 1 ➔ A ➔ 2 ➔ B ... 7 ➔ G birleştirin.";
+        banner.textContent = "✏️ TRAIL B: Yeşil '1' noktasına basıp başlayın! 1 ➔ A ➔ 2 ➔ B ... 7 ➔ G sırasıyla tamamlayın.";
         setupTrailABNodes();
       } else if (activeTask === 'trailNum') {
-        banner.textContent = "🔢 TRAIL A: Başlamak için yeşil '1' noktasına dokunun! Çizgi dışına çıkmadan 1'den 15'e kadar sıralayın.";
+        banner.textContent = "🔢 TRAIL A: Yeşil '1' noktasına basıp başlayın! 1'den 15'e kadar sırayla birleştirin.";
         setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil hattan taşmadan kalemi/parmağı bitiş noktasına kaydırın!";
+        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
-        banner.textContent = "♾️ SONSUZLUK RİTMİ: Ekrandaki sonsuzluk kılavuz çizgisini kesintisiz takip edin!";
+        banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp sonsuzluk çizgisini kesintisiz takip edin!";
         drawInfinityGuide();
       }
     }
@@ -425,29 +433,71 @@
       });
     }
 
+    // Hassas Parkur Çizimi & Noktaları
     function drawPathTrack() {
+      pathStartNode = { x: 60, y: canvas.height / 2, radius: 26 };
+      pathEndNode = { x: canvas.width - 60, y: canvas.height / 2, radius: 26 };
+
+      // Pre-calculate path curve reference points
+      pathCurvePoints = [];
+      const steps = 100;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = (1 - t) ** 3 * pathStartNode.x + 3 * (1 - t) ** 2 * t * (canvas.width * 0.3) + 3 * (1 - t) * t ** 2 * (canvas.width * 0.6) + t ** 3 * pathEndNode.x;
+        const y = (1 - t) ** 3 * pathStartNode.y + 3 * (1 - t) ** 2 * t * 60 + 3 * (1 - t) * t ** 2 * (canvas.height - 60) + t ** 3 * pathEndNode.y;
+        pathCurvePoints.push({ x, y });
+      }
+
+      // Draw Green Safe Corridor
       ctx.beginPath();
-      ctx.moveTo(50, canvas.height / 2);
-      ctx.bezierCurveTo(canvas.width * 0.3, 50, canvas.width * 0.6, canvas.height - 50, canvas.width - 50, canvas.height / 2);
-      ctx.lineWidth = 45;
+      ctx.moveTo(pathCurvePoints[0].x, pathCurvePoints[0].y);
+      for (let i = 1; i < pathCurvePoints.length; i++) {
+        ctx.lineTo(pathCurvePoints[i].x, pathCurvePoints[i].y);
+      }
+      ctx.lineWidth = pathTolerance * 2;
       ctx.strokeStyle = 'rgba(34, 197, 94, 0.15)';
       ctx.lineCap = 'round';
       ctx.stroke();
 
+      // Draw Boundary Lines
       ctx.lineWidth = 3;
       ctx.strokeStyle = '#ef4444';
       ctx.stroke();
+
+      // Start Node (Green)
+      ctx.beginPath();
+      ctx.arc(pathStartNode.x, pathStartNode.y, pathStartNode.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#22c55e';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Plus Jakarta Sans';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('BAŞLA', pathStartNode.x, pathStartNode.y);
+
+      // End Node (Red)
+      ctx.beginPath();
+      ctx.arc(pathEndNode.x, pathEndNode.y, pathEndNode.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('BİTİŞ', pathEndNode.x, pathEndNode.y);
+
+      document.getElementById('badgeNextNode').textContent = 'BAŞLA 🟢';
     }
 
+    // Sonsuzluk Çizimi & Noktası
     function drawInfinityGuide() {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       const w = canvas.width * 0.35;
 
+      pathCurvePoints = [];
       ctx.beginPath();
       for (let t = 0; t < Math.PI * 2; t += 0.02) {
         const x = cx + (w * Math.cos(t)) / (1 + Math.sin(t) ** 2);
         const y = cy + (w * Math.sin(t) * Math.cos(t)) / (1 + Math.sin(t) ** 2);
+        pathCurvePoints.push({ x, y });
         if (t === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
@@ -456,9 +506,22 @@
       ctx.setLineDash([10, 10]);
       ctx.stroke();
       ctx.setLineDash([]);
+
+      // Start Node
+      pathStartNode = { x: cx, y: cy, radius: 24 };
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#22c55e';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Plus Jakarta Sans';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('BAŞLA', cx, cy);
+
+      document.getElementById('badgeNextNode').textContent = 'BAŞLA 🟢';
     }
 
-    // Out of Bounds Path Deviation Calculator
     function distanceFromSegment(p, a, b) {
       const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
       if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
@@ -467,7 +530,16 @@
       return Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)));
     }
 
-    // Canvas Events & Out-of-Bounds Sensor
+    function getMinDistanceFromCurve(p, curvePoints) {
+      let minDist = Infinity;
+      for (let i = 0; i < curvePoints.length - 1; i++) {
+        const d = distanceFromSegment(p, curvePoints[i], curvePoints[i + 1]);
+        if (d < minDist) minDist = d;
+      }
+      return minDist;
+    }
+
+    // Canvas Events
     function setupCanvasEvents() {
       const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -486,6 +558,7 @@
 
         const pos = getPos(e);
 
+        // TRAIL MAKING AUTO-START
         if (activeTask.startsWith('trail') && nextNodeIndex === 0) {
           const firstNode = trailNodes[0];
           const dist = Math.hypot(pos.x - firstNode.x, pos.y - firstNode.y);
@@ -495,6 +568,18 @@
             markNodeSuccess(firstNode);
             nextNodeIndex = 1;
             document.getElementById('badgeNextNode').textContent = trailNodes[1].label;
+          } else {
+            triggerError();
+            return;
+          }
+        }
+
+        // PATH & INFINITY AUTO-START
+        if ((activeTask === 'path' || activeTask === 'infinity') && !isTimerRunning && !taskCompleted) {
+          const dist = Math.hypot(pos.x - pathStartNode.x, pos.y - pathStartNode.y);
+          if (dist <= pathStartNode.radius + 10) {
+            startTimer();
+            document.getElementById('badgeNextNode').textContent = 'BİTİŞ 🏁';
           } else {
             triggerError();
             return;
@@ -513,17 +598,41 @@
 
         let strokeColor = '#38bdf8';
 
-        // Check Out of Bounds Deviation between active nodes
+        // Out of Bounds Detection for TRAIL MAKING
         if (activeTask.startsWith('trail') && nextNodeIndex > 0 && nextNodeIndex < trailNodes.length) {
           const prevNode = trailNodes[nextNodeIndex - 1];
           const targetNode = trailNodes[nextNodeIndex];
           const deviation = distanceFromSegment(pos, prevNode, targetNode);
 
           if (deviation > pathTolerance) {
-            strokeColor = '#ef4444'; // Red error stroke
-            if (Date.now() - lastErrorTime > 400) {
+            strokeColor = '#ef4444';
+            if (Date.now() - lastErrorTime > 350) {
               triggerError();
               lastErrorTime = Date.now();
+            }
+          }
+        }
+
+        // Out of Bounds Detection for PARKUR & INFINITY
+        if ((activeTask === 'path' || activeTask === 'infinity') && isTimerRunning) {
+          const deviation = getMinDistanceFromCurve(pos, pathCurvePoints);
+
+          if (deviation > pathTolerance) {
+            strokeColor = '#ef4444';
+            if (Date.now() - lastErrorTime > 350) {
+              triggerError();
+              lastErrorTime = Date.now();
+            }
+          }
+
+          // Check PARKUR END NODE Collision
+          if (activeTask === 'path') {
+            const distEnd = Math.hypot(pos.x - pathEndNode.x, pos.y - pathEndNode.y);
+            if (distEnd <= pathEndNode.radius) {
+              stopTimer();
+              taskCompleted = true;
+              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
+              setTimeout(openReportModal, 300);
             }
           }
         }
@@ -534,7 +643,7 @@
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Trail Target Collision
+        // Trail Collision Checking
         if (activeTask.startsWith('trail') && nextNodeIndex < trailNodes.length) {
           const target = trailNodes[nextNodeIndex];
           const dist = Math.hypot(pos.x - target.x, pos.y - target.y);
@@ -547,6 +656,7 @@
               document.getElementById('badgeNextNode').textContent = trailNodes[nextNodeIndex].label;
             } else {
               stopTimer();
+              taskCompleted = true;
               document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
               setTimeout(openReportModal, 300);
             }
@@ -567,7 +677,7 @@
     function triggerError() {
       errorCount++;
       document.getElementById('badgeErrors').textContent = errorCount;
-      playBeep(220, 0.15); // Alarm Beep
+      playBeep(220, 0.15);
     }
 
     function markNodeSuccess(node) {
@@ -583,7 +693,7 @@
     }
 
     function openReportModal() {
-      const taskNames = { trailAB: 'Trail B (1-A-2-B...)', trailNum: 'Trail A (1-15)', path: 'Hassas Parkur', infinity: 'Sonsuzluk Ritim' };
+      const taskNames = { trailAB: 'Trail B (1-A-2-B...)', trailNum: 'Trail A (1-15)', path: 'Hassas Parkur Takip', infinity: 'Sonsuzluk Ritim' };
       document.getElementById('rptTask').textContent = taskNames[activeTask];
       document.getElementById('rptInput').textContent = inputMode === 'pen' ? 'Tablet Kalemi' : 'Parmak';
       document.getElementById('rptErrors').textContent = errorCount;
