@@ -61,7 +61,7 @@
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               CortexTrace Pro
             </h1>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v2.9 Fixed</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider">SPPlab v3.0 Final</span>
           </div>
           <p class="text-xs text-slate-400 hidden sm:block">Sporda Performans Psikolojisi Lab (SPPlab) - Visuomotor Platformu</p>
         </div>
@@ -171,7 +171,7 @@
     <!-- TRAINER & CONTROL PANEL -->
     <div class="flex items-center justify-between w-full max-w-4xl mx-auto bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
       <div class="text-xs text-slate-400 font-medium">
-        SPPlab CortexTrace System | Hedef Odaklı Rastgele Dağılımlı Trail Making
+        SPPlab CortexTrace System | Visuomotor & Parkur Takip Platformu
       </div>
       <div class="flex space-x-2">
         <button onclick="openReportModal()" class="bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-300 font-bold py-2 px-4 rounded-xl transition text-xs flex items-center space-x-1.5">
@@ -258,8 +258,8 @@
 
     let infinityLeftReached = false;
     let infinityRightReached = false;
-    let infinityLeftCheckNode = { x: 0, y: 0, radius: 45 };
-    let infinityRightCheckNode = { x: 0, y: 0, radius: 45 };
+    let infinityLeftCheckNode = { x: 0, y: 0, radius: 50 };
+    let infinityRightCheckNode = { x: 0, y: 0, radius: 50 };
 
     let audioCtx = null;
 
@@ -329,6 +329,7 @@
       errorCount = 0;
       nextNodeIndex = 0;
       taskCompleted = false;
+      isDrawing = false;
       infinityLeftReached = false;
       infinityRightReached = false;
 
@@ -369,7 +370,7 @@
         banner.textContent = "🔢 TRAIL A: Yeşil '1' noktasına basıp başlayın! 1'den 15'e kadar sırayla birleştirin.";
         setupTrailNumNodes();
       } else if (activeTask === 'path') {
-        banner.textContent = "流域 HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
+        banner.textContent = "🛣️ HASSAS PARKUR: Yeşil 'BAŞLA' noktasına dokunun! Çizgi dışına çıkmadan kırmızı 'BİTİŞ' noktasına ulaşın.";
         drawPathTrack();
       } else if (activeTask === 'infinity') {
         banner.textContent = "♾️ SONSUZLUK RİTMİ: Yeşil noktadan başlayıp her iki halkayı dolaşarak tekrar merkeze dönün!";
@@ -532,8 +533,8 @@
       ctx.setLineDash([]);
 
       pathStartNode = { x: cx, y: cy, radius: 28 };
-      infinityLeftCheckNode = { x: cx - w * 0.65, y: cy, radius: 45 };
-      infinityRightCheckNode = { x: cx + w * 0.65, y: cy, radius: 45 };
+      infinityLeftCheckNode = { x: cx - w * 0.6, y: cy, radius: 50 };
+      infinityRightCheckNode = { x: cx + w * 0.6, y: cy, radius: 50 };
 
       ctx.beginPath();
       ctx.arc(cx, cy, 24, 0, Math.PI * 2);
@@ -577,6 +578,7 @@
       };
 
       const startDrawing = (e) => {
+        if (taskCompleted) return;
         if (inputMode === 'pen' && e.pointerType && e.pointerType !== 'pen' && e.pointerType !== 'mouse') {
           return;
         }
@@ -598,9 +600,9 @@
           }
         }
 
-        if ((activeTask === 'path' || activeTask === 'infinity') && !isTimerRunning && !taskCompleted) {
+        if ((activeTask === 'path' || activeTask === 'infinity') && !isTimerRunning) {
           const dist = Math.hypot(pos.x - pathStartNode.x, pos.y - pathStartNode.y);
-          if (dist <= pathStartNode.radius + 15) {
+          if (dist <= pathStartNode.radius + 20) {
             startTimer();
             infinityLeftReached = false;
             infinityRightReached = false;
@@ -640,12 +642,9 @@
 
           if (activeTask === 'path') {
             const distEnd = Math.hypot(pos.x - pathEndNode.x, pos.y - pathEndNode.y);
-            if (distEnd <= pathEndNode.radius) {
-              stopTimer();
-              taskCompleted = true;
-              isDrawing = false;
-              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 200);
+            if (distEnd <= pathEndNode.radius + 10) {
+              completeTask();
+              return;
             }
           }
 
@@ -657,13 +656,10 @@
             if (distLeft <= infinityLeftCheckNode.radius) infinityLeftReached = true;
             if (distRight <= infinityRightCheckNode.radius) infinityRightReached = true;
 
-            // Her iki halkayı dolaşıp merkeze döndüğünde durdur
-            if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius + 15) {
-              stopTimer();
-              taskCompleted = true;
-              isDrawing = false;
-              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 200);
+            // Her iki halka dolaşıldıktan sonra merkeze ulaşma kontrolü
+            if (infinityLeftReached && infinityRightReached && distCenter <= pathStartNode.radius + 25) {
+              completeTask();
+              return;
             }
           }
         }
@@ -685,11 +681,8 @@
             if (nextNodeIndex < trailNodes.length) {
               document.getElementById('badgeNextNode').textContent = trailNodes[nextNodeIndex].label;
             } else {
-              stopTimer();
-              taskCompleted = true;
-              isDrawing = false;
-              document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
-              setTimeout(openReportModal, 200);
+              completeTask();
+              return;
             }
           }
         }
@@ -703,6 +696,15 @@
       canvas.addEventListener('pointermove', draw);
       canvas.addEventListener('pointerup', stopDrawing);
       canvas.addEventListener('pointerleave', stopDrawing);
+    }
+
+    function completeTask() {
+      if (taskCompleted) return;
+      taskCompleted = true;
+      isDrawing = false;
+      stopTimer();
+      document.getElementById('badgeNextNode').textContent = 'TAMAMLANDI 🎉';
+      setTimeout(openReportModal, 200);
     }
 
     function checkWrongNodeHit(pos) {
